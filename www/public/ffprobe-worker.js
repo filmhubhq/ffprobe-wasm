@@ -47,7 +47,9 @@ onmessage = (message) => {
         },
       })
     } catch (error) {
-      origin.postMessage({ error })
+      // for yet to be explained reasons, accessing error here crashes the worker
+      // send back generic error for now
+      origin.postMessage({ error: 'ffprobe crashed' })
     }
 
     // Cleanup mount.
