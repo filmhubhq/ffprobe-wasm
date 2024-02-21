@@ -21,7 +21,7 @@ RUN cd /tmp/x264-snapshot-${X264_VERSION} && \
   --enable-static \
   --disable-cli \
   --disable-asm \
-  --extra-cflags="-s USE_PTHREADS=1"
+  --extra-cflags="-s USE_PTHREADS=0"
 
 RUN cd /tmp/x264-snapshot-${X264_VERSION} && \
   emmake make && emmake make install 
@@ -36,7 +36,8 @@ RUN cd /tmp/lame-${LAME_VERSION} && \
   --prefix=${PREFIX} \
   --host=i686-gnu \
   --enable-static \
-  --disable-frontend
+  --disable-frontend \
+  --extra-cflags="-s USE_PTHREADS=0"
 
 RUN cd /tmp/lame-${LAME_VERSION} && \
   emmake make && emmake make install 
@@ -46,7 +47,7 @@ RUN cd /tmp/ && \
   wget http://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.gz && \
   tar zxf ffmpeg-${FFMPEG_VERSION}.tar.gz && rm ffmpeg-${FFMPEG_VERSION}.tar.gz
 
-ARG CFLAGS="-s USE_PTHREADS=1 -O3 -I${PREFIX}/include"
+ARG CFLAGS="-s USE_PTHREADS=0 -O3 -I${PREFIX}/include"
 ARG LDFLAGS="$CFLAGS -L${PREFIX}/lib -s INITIAL_MEMORY=33554432"
 
 # Compile ffmpeg.
