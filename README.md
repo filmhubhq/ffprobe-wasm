@@ -39,6 +39,15 @@ npm run serve
 npm run build
 ```
 
+### Build for Filmhub
+```
+docker builder prune --all
+docker-compose build --no-cache
+docker-compose run ffprobe-wasm make
+```
+
+Files from dist/ should then be copied to [packages/web/public/ffprobe](https://github.com/filmhubhq/filmhub/tree/main/packages/web/public/ffprobe), along with www/public/ffprobe-worker.js (if modified)
+
 ### Deploy
 Builds and deploys to `gh-pages` branch.
 
