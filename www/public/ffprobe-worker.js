@@ -12,7 +12,7 @@ onmessage = (message) => {
 
     try {
       // Call the wasm module.
-      const { name, ...info } = Module.get_file_info(`/work/${file.name}`)
+      const { name, error, ...info } = Module.get_file_info(`/work/${file.name}`)
 
       // Remap streams into collection.
       const streams = []
@@ -39,6 +39,7 @@ onmessage = (message) => {
       // Send back data response.
 
       origin.postMessage({
+        error,
         streams,
         chapters,
         format: {
@@ -46,7 +47,7 @@ onmessage = (message) => {
           format_name: name,
         },
       })
-    } catch (error) {
+    } catch (unknownError) {
       // for yet to be explained reasons, accessing error here crashes the worker
       // send back generic error for now
       origin.postMessage({ error: 'ffprobe crashed' })
@@ -57,33 +58,14 @@ onmessage = (message) => {
     break
   }
 
-  case 'get_frames': {
-    if (!FS.analyzePath('/work').exists) {
-      FS.mkdir('/work')
-    }
-    FS.mount(WORKERFS, { files: [file] }, '/work')
-
-    const [,, offset] = message.data
-    const info = Module.get_frames(`/work/${file.name}`, offset)
-
-    // Remap frames into collection.
-    const frames = []
-    for (let i = 0; i < info.frames.size(); i++) {
-      frames.push(info.frames.get(i))
-    }
-
-    origin.postMessage({
-      ...info,
-      frames,
-    })
-
-    // Cleanup mount.
-    FS.unmount('/work')
-    break
-  }
-
   default:
     break
   }
 }
-self.importScripts('ffprobe-wasm.js') // Load ffprobe into worker context.
+try {
+  self.importScripts('ffprobe-wasm.js') // Load ffprobe into worker context.
+} catch (error) {
+  // we don't have access to browserLogger inside the worker
+  // eslint-disable-next-line no-console
+  console.log('ffprobe failed to load "ffprobe-wasm.js"')
+}
