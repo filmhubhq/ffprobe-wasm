@@ -41,7 +41,7 @@ RUN cd /tmp/ffmpeg-${FFMPEG_VERSION} && \
   --enable-swscale \
   --enable-protocol=file \
   --enable-decoder=aac,pcm_s16le \
-  --enable-demuxer=mov,matroska \
+  --enable-demuxer=mov,matroska,mxf \
   --enable-gpl \
   --extra-cflags="$CFLAGS" \
   --extra-cxxflags="$CFLAGS" \
