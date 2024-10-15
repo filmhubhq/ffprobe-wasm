@@ -1,46 +1,13 @@
 FROM emscripten/emsdk:3.1.15 as build
 
 ARG FFMPEG_VERSION=4.3.1
-ARG X264_VERSION=20170226-2245-stable
-ARG LAME_VERSION=3.100 
 
 ARG PREFIX=/opt/ffmpeg
 ARG MAKEFLAGS="-j4"
 
 RUN apt-get update && apt-get install -y autoconf libtool build-essential
 
-# libx264
-RUN cd /tmp && \
-  wget https://download.videolan.org/pub/videolan/x264/snapshots/x264-snapshot-${X264_VERSION}.tar.bz2 && \
-  tar xvfj x264-snapshot-${X264_VERSION}.tar.bz2
-
-RUN cd /tmp/x264-snapshot-${X264_VERSION} && \
-  emconfigure ./configure \
-  --prefix=${PREFIX} \
-  --host=i686-gnu \
-  --enable-static \
-  --disable-cli \
-  --disable-asm \
-  --extra-cflags="-s USE_PTHREADS=0"
-
-RUN cd /tmp/x264-snapshot-${X264_VERSION} && \
-  emmake make && emmake make install 
-
-# libmp3lame
-RUN cd /tmp && \
-  wget -O lame-${LAME_VERSION}.tar.gz https://sourceforge.net/projects/lame/files/lame/${LAME_VERSION}/lame-${LAME_VERSION}.tar.gz/download && \
-  tar zxf lame-${LAME_VERSION}.tar.gz
-
-RUN cd /tmp/lame-${LAME_VERSION} && \
-  emconfigure ./configure \
-  --prefix=${PREFIX} \
-  --host=i686-gnu \
-  --enable-static \
-  --disable-frontend \
-  --extra-cflags="-s USE_PTHREADS=0"
-
-RUN cd /tmp/lame-${LAME_VERSION} && \
-  emmake make && emmake make install 
+ARG CFLAGS="-s USE_PTHREADS=0"
 
 # Get ffmpeg source.
 RUN cd /tmp/ && \
@@ -73,12 +40,9 @@ RUN cd /tmp/ffmpeg-${FFMPEG_VERSION} && \
   --enable-postproc \
   --enable-swscale \
   --enable-protocol=file \
-  --enable-decoder=h264,aac,pcm_s16le,mp3 \
-  --enable-demuxer=mov,matroska,mp3 \
-  --enable-muxer=mp4 \
+  --enable-decoder=aac,pcm_s16le \
+  --enable-demuxer=mov,matroska,mxf \
   --enable-gpl \
-  --enable-libx264 \
-  --enable-libmp3lame \
   --extra-cflags="$CFLAGS" \
   --extra-cxxflags="$CFLAGS" \
   --extra-ldflags="$LDFLAGS" \
@@ -102,3 +66,5 @@ COPY ./Makefile /build/Makefile
 WORKDIR /build
 
 RUN make
+
+COPY ./www/public/ffprobe-worker.js /build/dist/
